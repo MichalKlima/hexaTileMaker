@@ -1,0 +1,27 @@
+{
+  "id": "les_louka",
+  "terrains": ["les", "louka"],
+  "tileSize": 64,
+  "baseOrientation": {
+    "edgeNormalDeg": 90,
+    "cornerVertexDeg": 120
+  },
+  "assets": {
+    "edge": {
+      "canopy": "edge_canopy.png",
+      "trunks": "edge_trunks.png"
+    },
+    "corner": {
+      "canopy": "corner_canopy.png",
+      "trunks": "corner_trunks.png"
+    }
+  },
+  "rules": {
+    "appliesWhenBaseTerrain": "louka",
+    "neighborTerrain": "les",
+    "verticalVariant": {
+      "neighborBelow": "canopy",
+      "neighborAboveOrEqual": "trunks"
+    }
+  }
+}

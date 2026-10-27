@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MC_HEXA_MAP</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar left-panel">
+        <div class="panel-header">
+          <h1>MC_HEXA_MAP</h1>
+        </div>
+
+        <section class="panel-group">
+          <h2>Projekty</h2>
+          <div class="button-row">
+            <button id="new-project-btn">Nový projekt</button>
+            <button id="save-project-btn">Uložit</button>
+          </div>
+          <div class="button-row">
+            <button id="load-project-btn">Načíst</button>
+            <input id="project-file-input" type="file" accept="application/json" hidden />
+            <button id="export-svg-btn">Export SVG</button>
+          </div>
+        </section>
+
+        <section class="panel-group">
+          <h2>Nástroje</h2>
+          <div class="tool-list">
+            <button class="tool-btn active" data-tool="select">Výběr</button>
+            <button class="tool-btn" data-tool="paint">Malování</button>
+            <button class="tool-btn" data-tool="erase">Mazání</button>
+            <button class="tool-btn" data-tool="label">Popisky</button>
+          </div>
+        </section>
+
+        <section class="panel-group">
+          <h2>Vrstvy</h2>
+          <ul class="layer-list">
+            <li><span>Terén</span><input type="checkbox" checked /></li>
+            <li><span>Popisky</span><input type="checkbox" checked /></li>
+            <li><span>Decory</span><input type="checkbox" checked /></li>
+          </ul>
+        </section>
+      </aside>
+
+      <main class="workspace-panel">
+        <header class="workspace-tabs">
+          <button id="tab-map-btn" class="tab-btn active">Mapa</button>
+          <button id="tab-texture-btn" class="tab-btn">Texture Lab</button>
+        </header>
+
+        <section id="map-editor-panel" class="workspace-tab-panel active">
+          <header class="toolbar">
+            <div class="toolbar-group">
+              <label>Jméno projektu</label>
+              <input id="project-name-input" type="text" value="Nový projekt" />
+            </div>
+            <div class="toolbar-group">
+              <label>Velikost hexu</label>
+              <input id="hex-size-input" type="number" min="10" max="120" value="42" />
+            </div>
+            <div class="toolbar-group">
+              <button id="zoom-in-btn">+</button>
+              <button id="zoom-out-btn">-</button>
+              <button id="print-preview-btn">Náhled tisku</button>
+            </div>
+          </header>
+
+          <div class="viewport-wrap">
+            <svg id="map-view" xmlns="http://www.w3.org/2000/svg" aria-label="Hexagon map editor"></svg>
+          </div>
+        </section>
+
+        <section id="texture-lab-panel" class="workspace-tab-panel">
+          <div class="texture-lab-layout">
+            <aside class="texture-tools">
+              <h2>Texture Lab</h2>
+
+              <label for="tx-base-select">Základ (nižší terén)</label>
+              <select id="tx-base-select"></select>
+
+              <label for="tx-overlay-select">Overlay (vyšší terén)</label>
+              <select id="tx-overlay-select"></select>
+
+              <label>Směr overlaye</label>
+              <div id="tx-direction-rose" class="tx-direction-rose" aria-label="Směrová růžice">
+                <button class="tx-dir-btn" data-dir="NW">NW</button>
+                <button class="tx-dir-btn" data-dir="NE">NE</button>
+                <button class="tx-dir-btn" data-dir="W">W</button>
+                <button class="tx-dir-btn center" data-dir="E">E</button>
+                <button class="tx-dir-btn" data-dir="SW">SW</button>
+                <button class="tx-dir-btn" data-dir="SE">SE</button>
+              </div>
+
+              <div id="tx-transition-context" class="tx-transition-context">
+                <h3>Kontext přechodu</h3>
+                <p id="tx-context-note" class="tx-inline-meta">Střed = podklad, soused = overlay terén</p>
+                <div class="tx-context-grid">
+                  <div>
+                    <label>Základ (střed)</label>
+                    <canvas id="tx-base-canvas" width="64" height="64" aria-label="Base texture preview"></canvas>
+                  </div>
+                  <div>
+                    <label>Soused</label>
+                    <canvas id="tx-neighbor-canvas" width="64" height="64" aria-label="Neighbor texture preview"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <label>Nástroje</label>
+              <div class="tx-tool-grid">
+                <button class="tx-tool-btn active" data-tool="brush">Štětec</button>
+                <button class="tx-tool-btn" data-tool="eraser">Guma</button>
+                <button class="tx-tool-btn" data-tool="picker">Kapátko</button>
+                <button class="tx-tool-btn" data-tool="fgpick">Kapátko popředí</button>
+                <button class="tx-tool-btn" data-tool="bgpick">Kapátko pozadí</button>
+                <button class="tx-tool-btn" data-tool="rect">Rect výběr</button>
+                <button class="tx-tool-btn" data-tool="fill">Výplň</button>
+              </div>
+
+              <label for="tx-color-picker">Barva</label>
+              <input id="tx-color-picker" type="color" value="#2f7a3c" />
+
+              <label for="tx-alpha-range">Krytí barvy</label>
+              <input id="tx-alpha-range" type="range" min="0" max="255" value="255" />
+              <div id="tx-alpha-label" class="tx-inline-meta">255</div>
+
+              <label for="tx-brush-size">Velikost štětce</label>
+              <input id="tx-brush-size" type="number" min="1" max="16" value="1" />
+
+              <div class="tx-actions">
+                <button id="tx-clear-selection-btn">Zrušit výběr</button>
+                <button id="tx-toggle-mask-btn">Edit masky: OFF</button>
+              </div>
+
+              <label>Vrstvy</label>
+              <ul id="tx-layer-list" class="tx-layer-list"></ul>
+              <div class="tx-actions">
+                <button id="tx-add-layer-btn">+ Vrstva</button>
+                <button id="tx-remove-layer-btn">- Vrstva</button>
+              </div>
+              <div class="tx-actions">
+                <button id="tx-layer-up-btn">Vrstva nahoru</button>
+                <button id="tx-layer-down-btn">Vrstva dolů</button>
+              </div>
+
+              <label>Import / Export</label>
+              <div class="tx-actions">
+                <button id="tx-load-png-btn">Načíst PNG</button>
+                <input id="tx-load-png-input" type="file" accept="image/png" hidden />
+                <button id="tx-save-png-btn">Uložit PNG</button>
+              </div>
+              <div class="tx-actions">
+                <button id="tx-reset-btn">Reset textury</button>
+              </div>
+            </aside>
+
+            <section class="texture-stage">
+              <header class="tx-inner-tabs">
+                <button id="tx-tab-editor-btn" class="tx-inner-tab-btn active">Editor</button>
+                <button id="tx-tab-preview-btn" class="tx-inner-tab-btn">Náhled</button>
+              </header>
+
+              <div id="tx-editor-panel" class="tx-inner-panel active">
+                <div class="tx-editor-layout">
+                  <div class="tx-canvas-wrap">
+                    <h3>Editor (kreslíš jen střed)</h3>
+                    <canvas id="tx-editor-canvas" width="896" height="896" aria-label="Pixel texture editor"></canvas>
+                  </div>
+                  <aside id="tx-edit-guide-wrap" class="tx-edit-guide-wrap">
+                    <h3>Scéna 7 hex</h3>
+                    <canvas id="tx-edit-guide-canvas" width="360" height="360" aria-label="Transition neighbor guide"></canvas>
+                    <div id="tx-scene-picker" class="tx-scene-picker" hidden>
+                      <label id="tx-scene-picker-label" for="tx-scene-tile-select">Hex</label>
+                      <select id="tx-scene-tile-select" aria-label="Vyber tile pro zvoleny hex"></select>
+                    </div>
+                  </aside>
+                </div>
+              </div>
+
+              <div id="tx-preview-panel" class="tx-inner-panel">
+                <div class="tx-canvas-wrap">
+                  <h3>7 hex náhled navazování</h3>
+                  <canvas id="tx-preview-canvas" width="1000" height="720" aria-label="Hex tiling preview"></canvas>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+
+      <aside class="sidebar right-panel" id="map-right-panel">
+        <section class="panel-group">
+          <h2>Vlastnosti</h2>
+          <label>Terén</label>
+          <select id="terrain-select">
+            <option value="louka">Louka</option>
+            <option value="les">Les</option>
+            <option value="hory">Hory</option>
+            <option value="voda">Voda</option>
+            <option value="cesta">Cesta</option>
+            <option value="mesto">Město</option>
+            <option value="most">Most</option>
+            <option value="zed">Zed</option>
+          </select>
+
+          <label>Výška</label>
+          <input id="elevation-input" type="number" min="0" max="9" value="0" />
+
+          <label>Popisek</label>
+          <input id="label-input" type="text" placeholder="Název hexu" />
+        </section>
+
+        <section class="panel-group">
+          <h2>Tisk</h2>
+          <label>Orientace</label>
+          <select>
+            <option>Na výšku</option>
+            <option>Na šířku</option>
+          </select>
+
+          <label>Velikost papíru</label>
+          <select>
+            <option>A4</option>
+            <option>A3</option>
+            <option>Letter</option>
+          </select>
+        </section>
+      </aside>
+    </div>
+
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>
