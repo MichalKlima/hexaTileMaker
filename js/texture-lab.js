@@ -149,6 +149,7 @@ export class TextureLab {
 
     this.currentTargetPath = '';
     this.currentTarget = null;
+    this.projectRootHandle = null;
     this.currentBaseTerrain = TERRAIN_PRIORITY_ORDER[0];
     this.currentOverlayTerrain = TERRAIN_PRIORITY_ORDER[1] ?? TERRAIN_PRIORITY_ORDER[0];
     this.currentDirection = OVERLAY_DIRECTIONS[0];
@@ -785,11 +786,72 @@ export class TextureLab {
     }
   }
 
-  saveCurrentTexture() {
+  getCurrentTargetPath() {
+    if (this.currentTargetPath) return this.currentTargetPath;
+    if (this.currentBaseTerrain) return getBaseTileAsset(this.currentBaseTerrain);
+    return 'texture.png';
+  }
+
+  async getAssetSaveDirectoryHandle(relativePath) {
+    if (!relativePath || !window.showDirectoryPicker) return null;
+
+    if (!this.projectRootHandle) {
+      try {
+        this.projectRootHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      } catch {
+        return null;
+      }
+    }
+
+    const segments = relativePath.split('/').filter(Boolean).slice(0, -1);
+    let handle = this.projectRootHandle;
+
+    for (const segment of segments) {
+      if (!segment || segment === '.') continue;
+      try {
+        handle = await handle.getDirectoryHandle(segment, { create: true });
+      } catch {
+        return null;
+      }
+    }
+
+    return handle;
+  }
+
+  async saveCurrentTexture() {
     this.rebuildComposite();
+    const relativePath = this.getCurrentTargetPath();
+    const fileName = relativePath.split('/').slice(-1)[0] || 'texture.png';
+    const blob = await new Promise((resolve) => this.compositeCanvas.toBlob(resolve, 'image/png'));
+
+    if (!blob) return;
+
+    if (window.showSaveFilePicker) {
+      try {
+        const options = {
+          suggestedName: fileName,
+          types: [{
+            description: 'PNG Image',
+            accept: { 'image/png': ['.png'] },
+          }],
+        };
+        const startIn = await this.getAssetSaveDirectoryHandle(relativePath);
+        if (startIn) options.startIn = startIn;
+
+        const fileHandle = await window.showSaveFilePicker(options);
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return;
+      } catch (error) {
+        if (error?.name !== 'AbortError') {
+          console.warn('Texture save dialog failed:', error);
+        }
+      }
+    }
+
     const dataUrl = this.compositeCanvas.toDataURL('image/png');
     const a = document.createElement('a');
-    const fileName = this.currentTargetPath.split('/').slice(-1)[0] || 'texture.png';
     a.href = dataUrl;
     a.download = fileName;
     a.click();
