@@ -39,6 +39,17 @@ http://localhost:8000
 - ukládání projektů do souboru JSON
 - tisková příprava s marginy a měřítkem
 
+## Export do Illustratoru
+
+Tlačítko `Export SVG` ukládá SVG se zapouzdřenými texturami (`data:` URL přímo v souboru), takže Illustrator nepotřebuje externí PNG soubory vedle exportu.
+
+Tlačítko `Export SVG+ZIP` vytvoří ZIP balíček se strukturou:
+
+- `<projekt>_svg/map.svg`
+- `<projekt>_svg/terrains/...` (všechny použité PNG assety)
+
+`map.svg` pak odkazuje na relativní cesty uvnitř ZIP balíčku, takže po rozbalení zůstanou vazby na textury zachované.
+
 ## Terény jako PNG tiles (64x64)
 
 Každý terén nyní používá vlastní PNG dlaždici 64x64 px:

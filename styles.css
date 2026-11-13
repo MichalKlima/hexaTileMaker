@@ -91,6 +91,7 @@ select {
   display: flex;
   gap: 8px;
   margin-bottom: 10px;
+  flex-wrap: wrap;
 }
 
 button {
@@ -104,6 +105,29 @@ button {
 
 button:hover {
   border-color: var(--primary);
+}
+
+button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.export-feedback {
+  min-height: 1.2rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.export-feedback[data-state="working"] {
+  color: #93c5fd;
+}
+
+.export-feedback[data-state="success"] {
+  color: #86efac;
+}
+
+.export-feedback[data-state="error"] {
+  color: #fca5a5;
 }
 
 .tool-btn.active {
